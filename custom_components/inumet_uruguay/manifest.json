@@ -1,5 +1,5 @@
 {
-  "domain": "inumet",
+  "domain": "inumet_uruguay",
   "name": "Inumet Uruguay",
   "config_flow": true,
   "documentation": "https://github.com/matbott/inumet-ha",
