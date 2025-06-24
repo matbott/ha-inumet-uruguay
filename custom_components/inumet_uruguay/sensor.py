@@ -1,6 +1,6 @@
 """Sensor platform for Inumet Uruguay."""
 from __future__ import annotations
-import logging  # <-- 1. AÑADIR ESTA IMPORTACIÓN
+import logging
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -24,9 +24,8 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN, NAME, VERSION
 from .coordinator import InumetDataUpdateCoordinator
 
-_LOGGER = logging.getLogger(__package__)  # <-- 2. AÑADIR ESTA LÍNEA
+_LOGGER = logging.getLogger(__package__)
 
-# (La lista ENTITY_DESCRIPTIONS no cambia)
 ENTITY_DESCRIPTIONS: tuple[SensorEntityDescription, ...] = (
     SensorEntityDescription(
         key="air_temperature",
@@ -62,7 +61,8 @@ ENTITY_DESCRIPTIONS: tuple[SensorEntityDescription, ...] = (
         name="Dirección del Viento",
         device_class=SensorDeviceClass.WIND_DIRECTION,
         native_unit_of_measurement=DEGREE,
-        state_class=SensorStateClass.MEASUREMENT,
+        # --- LÍNEA CORREGIDA ---
+        # Se elimina state_class para este tipo de sensor
         icon="mdi:compass-outline",
     ),
 )
@@ -105,13 +105,11 @@ class InumetWeatherSensor(CoordinatorEntity[InumetDataUpdateCoordinator], Sensor
     @property
     def native_value(self) -> float | None:
         """Return the native value of the sensor."""
-        # --- CÓDIGO TEMPORAL DE DEPURACIÓN ---
-        # Imprimimos solo una vez para no llenar los logs con datos repetidos
+        # Mantenemos el código de depuración por ahora
         if self.entity_description.key == "air_temperature":
             _LOGGER.warning("Datos completos del coordinador: %s", self.coordinator.data)
             _LOGGER.warning("Datos del tiempo extraídos: %s", self.coordinator.data.get("weather", {}))
-        # ------------------------------------
-
+        
         weather_data = self.coordinator.data.get("weather", {})
         measurement = weather_data.get(self.entity_description.key, {})
         return measurement.get("value")
