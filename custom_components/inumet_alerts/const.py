@@ -3,6 +3,7 @@ from datetime import timedelta
 
 DOMAIN = "inumet_alerts"
 NAME = "Inumet Alertas"
+VERSION = "1.0.2"  # <-- ASEGÚRATE DE QUE ESTA LÍNEA EXISTA
 
 # URL directa a los items de alertas
 ALERTS_URL = "https://w2b.inumet.gub.uy/oapi/collections/urn:wmo:md:uy-inumet:cap-alerts/items?f=json"
