@@ -3,7 +3,7 @@ from datetime import timedelta
 
 DOMAIN = "inumet_uruguay"
 NAME = "Inumet Uruguay"
-VERSION = "2.0.0"
+VERSION = "2.0.4"
 
 # URLs de la API
 ALERTS_URL = "https://w2b.inumet.gub.uy/oapi/collections/urn:wmo:md:uy-inumet:cap-alerts/items?f=json"
