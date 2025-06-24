@@ -9,7 +9,7 @@ from .const import DOMAIN
 from .coordinator import InumetDataUpdateCoordinator
 
 # Por ahora solo cargamos el sensor binario
-PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.SENSOR]
+PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.SENSOR, Platform.WEATHER]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Inumet Uruguay from a config entry."""
