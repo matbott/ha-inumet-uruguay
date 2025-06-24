@@ -2,9 +2,9 @@
   "domain": "inumet_alerts",
   "name": "Inumet Alertas",
   "config_flow": true,
-  "documentation": "https://github.com/tu-usuario/inumet-alerts",
-  "issue_tracker": "https://github.com/tu-usuario/inumet-alerts/issues",
-  "codeowners": ["@tu-usuario"],
+  "documentation": "https://github.com/matbott/inumet-alerts",
+  "issue_tracker": "https://github.com/matbott/inumet-alerts/issues",
+  "codeowners": ["@matbott"],
   "iot_class": "cloud_polling",
   "version": "1.0.1",
   "requirements": []
