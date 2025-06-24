@@ -1,4 +1,4 @@
-"""The Inumet Alerts integration."""
+"""The Inumet Uruguay integration."""
 from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
@@ -6,15 +6,15 @@ from homeassistant.core import HomeAssistant
 from homeassistant.const import Platform
 
 from .const import DOMAIN
-from .coordinator import InumetAlertsDataUpdateCoordinator
+from .coordinator import InumetDataUpdateCoordinator
 
+# Por ahora solo cargamos el sensor binario
 PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Inumet Alerts from a config entry."""
-    # --- LÍNEA CORREGIDA ---
-    coordinator = InumetAlertsDataUpdateCoordinator(hass)
-    # ---------------------
+    """Set up Inumet Uruguay from a config entry."""
+    # Ahora pasamos 'entry' al coordinador
+    coordinator = InumetDataUpdateCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
