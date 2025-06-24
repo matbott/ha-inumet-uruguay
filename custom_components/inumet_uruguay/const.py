@@ -1,7 +1,7 @@
 """Constants for the Inumet integration."""
 from datetime import timedelta
 
-DOMAIN = "inumet"
+DOMAIN = "inumet_uruguay"
 NAME = "Inumet Uruguay"
 VERSION = "2.0.0"
 
