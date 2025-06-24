@@ -40,33 +40,40 @@ class InumetDataUpdateCoordinator(DataUpdateCoordinator):
         response.raise_for_status()
         jobs_data = await response.json()
 
-        # Paso 2: Encontrar el job más reciente, exitoso y relevante
-        latest_job_id = None
+        # --- LÓGICA MEJORADA ---
+        # Recorremos los jobs recientes hasta encontrar datos para nuestra estación
         for job in jobs_data.get("jobs", []):
             if job.get("ProcessID") == "bufr2geojson" and job.get("Status") == "successful":
-                latest_job_id = job.get("JobID")
-                break  # Encontramos el más reciente, salimos del bucle
+                # Encontramos un job relevante, ahora vemos si tiene nuestros datos
+                job_id = job.get("JobID")
+                results_url = JOB_RESULTS_URL_TEMPLATE.format(job_id=job_id)
+                
+                _LOGGER.debug("Revisando job %s para la estación %s", job_id, self.station_id)
+                
+                res_response = await self.session.get(results_url)
+                # Usamos continue para saltar a la siguiente iteración si este job falla
+                if res_response.status != 200:
+                    continue
+                
+                results_data = await res_response.json()
 
-        if not latest_job_id:
-            _LOGGER.warning("No successful 'bufr2geojson' job found.")
-            return {}
+                station_weather = {}
+                # Buscamos si alguno de los items en este job es de nuestra estación
+                for item in results_data.get("items", []):
+                    properties = item.get("properties", {})
+                    if properties.get("wigos_station_identifier") == self.station_id:
+                        measurement_name = properties.get("name")
+                        station_weather[measurement_name] = properties
+                
+                # Si encontramos datos para nuestra estación, los devolvemos y terminamos
+                if station_weather:
+                    _LOGGER.info("Datos encontrados para la estación %s en el job %s", self.station_id, job_id)
+                    return station_weather
 
-        # Paso 3: Obtener los resultados de ese job
-        results_url = JOB_RESULTS_URL_TEMPLATE.format(job_id=latest_job_id)
-        response = await self.session.get(results_url)
-        response.raise_for_status()
-        results_data = await response.json()
-        
-        # Paso 4: Procesar y filtrar los datos para nuestra estación
-        station_weather = {}
-        for item in results_data.get("items", []):
-            properties = item.get("properties", {})
-            if properties.get("wigos_station_identifier") == self.station_id:
-                measurement_name = properties.get("name")
-                # Guardamos el diccionario completo de propiedades
-                station_weather[measurement_name] = properties
-        
-        return station_weather
+        # Si recorrimos todos los jobs y no encontramos nada, avisamos y devolvemos vacío
+        _LOGGER.warning("No se encontraron datos recientes para la estación %s", self.station_id)
+        return {}
+        # --- FIN DE LA LÓGICA MEJORADA ---
 
     async def _async_get_alerts_data(self) -> dict:
         """Fetch alerts data."""
@@ -77,7 +84,6 @@ class InumetDataUpdateCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self) -> dict:
         """Fetch data from API endpoint."""
         try:
-            # Hacemos las dos llamadas a la API en paralelo para más eficiencia
             results = await asyncio.gather(
                 self._async_get_weather_data(),
                 self._async_get_alerts_data(),
