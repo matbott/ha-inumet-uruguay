@@ -13,9 +13,9 @@ PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
     Platform.SENSOR,
     Platform.WEATHER,
+    Platform.IMAGE, # <-- AÑADIR ESTA PLATAFORMA
 ]
 # ----------------------
-
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Inumet Uruguay from a config entry."""
     coordinator = InumetDataUpdateCoordinator(hass, entry)
