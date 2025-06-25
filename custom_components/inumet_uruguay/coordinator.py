@@ -1,8 +1,8 @@
 """DataUpdateCoordinator for Inumet Uruguay."""
 from __future__ import annotations
-import logging  # <-- LA LÍNEA QUE FALTABA
+import logging
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta  # <-- LA LÍNEA QUE FALTABA
 
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
@@ -29,7 +29,6 @@ class InumetDataUpdateCoordinator(DataUpdateCoordinator):
         self.station_name = entry.title
         self.session = async_get_clientsession(hass)
         
-        # Leemos el intervalo de las opciones (si existen) o de los datos iniciales.
         update_interval_minutes = entry.options.get("update_interval", entry.data.get("update_interval"))
         update_interval = timedelta(minutes=update_interval_minutes)
         
