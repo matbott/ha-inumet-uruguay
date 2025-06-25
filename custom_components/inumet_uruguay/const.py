@@ -12,4 +12,4 @@ FORECAST_URL = "https://www.inumet.gub.uy/reportes/pronosticos/pronosticoV4.json
 GENERAL_ALERTS_URL = "https://inumet.gub.uy/reportes/riesgo/advGral.mch" # <-- URL NUEVA
 
 # Intervalo de actualización
-DEFAULT_UPDATE_INTERVAL = 15
+DEFAULT_UPDATE_INTERVAL = 30
