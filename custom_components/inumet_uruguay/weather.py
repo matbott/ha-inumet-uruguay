@@ -1,6 +1,7 @@
 """Weather platform for Inumet Uruguay."""
 from __future__ import annotations
 from datetime import timedelta
+from typing import Any
 
 from homeassistant.components.weather import (
     Forecast,
@@ -11,7 +12,7 @@ from homeassistant.components.weather import (
     ATTR_FORECAST_CONDITION,
     ATTR_FORECAST_TIME,
 )
-from homeassistant.const import UnitOfTemperature, UnitOfSpeed, UnitOfPressure
+from homeassistant.const import UnitOfPressure, UnitOfSpeed, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
@@ -22,6 +23,29 @@ from homeassistant.util import dt as dt_util
 from .const import DOMAIN, NAME, VERSION
 from .coordinator import InumetDataUpdateCoordinator
 
+# Mapeo de código de departamento (campo 'estado' en la estación) a ID de Zona de pronóstico
+DEPARTMENT_TO_ZONE_ID_MAP = {
+    "AR": 66,  # Artigas -> Noroeste
+    "CA": 88,  # Canelones -> Área Metropolitana
+    "CL": 65,  # Cerro Largo -> Noreste
+    "CO": 86,  # Colonia -> Suroeste
+    "DU": 67,  # Durazno -> Centro-Sur
+    "FS": 67,  # Flores -> Centro-Sur
+    "FR": 67,  # Florida -> Centro-Sur
+    "LA": 68,  # Lavalleja -> Este
+    "MA": 89,  # Maldonado -> Punta del Este
+    "MO": 88,  # Montevideo -> Área Metropolitana
+    "PA": 86,  # Paysandú -> Suroeste
+    "RN": 86,  # Río Negro -> Suroeste
+    "RI": 65,  # Rivera -> Noreste
+    "RO": 68,  # Rocha -> Este
+    "SA": 66,  # Salto -> Noroeste
+    "SJ": 88,  # San José -> Área Metropolitana
+    "SO": 86,  # Soriano -> Suroeste
+    "TA": 65,  # Tacuarembó -> Noreste
+    "TT": 68,  # Treinta y Tres -> Este
+}
+
 # Mapeo de iconos del pronóstico de Inumet a los de Home Assistant
 CONDITION_MAP = {
     "1": "sunny", "2": "partlycloudy", "3": "partlycloudy", "4": "cloudy",
@@ -31,6 +55,7 @@ CONDITION_MAP = {
     "19": "windy-variant", "20": "clear-night", "21": "partlycloudy",
     "22": "partlycloudy", "23": "rainy", "24": "cloudy",
 }
+
 
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
@@ -45,7 +70,7 @@ class InumetWeather(CoordinatorEntity[InumetDataUpdateCoordinator], WeatherEntit
 
     _attr_native_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_native_pressure_unit = UnitOfPressure.HPA
-    _attr_native_wind_speed_unit = UnitOfSpeed.KNOTS # La API entrega en nudos
+    _attr_native_wind_speed_unit = UnitOfSpeed.KNOTS
 
     def __init__(self, coordinator: InumetDataUpdateCoordinator, entry: ConfigEntry) -> None:
         """Initialize the weather entity."""
@@ -64,23 +89,38 @@ class InumetWeather(CoordinatorEntity[InumetDataUpdateCoordinator], WeatherEntit
             model="Estación Meteorológica",
         )
 
-    def _get_current_observation(self, variable_id_str: str):
-        """Helper para obtener un valor de la matriz de observaciones."""
+    def _get_current_observation(self, variable_id_str: str) -> float | None:
+        """Helper to get a value from the observations matrix."""
         try:
             estado_data = self.coordinator.data["estado"]
             station_idx = next((i for i, est in enumerate(estado_data["estaciones"]) if est["id"] == self.station_id), None)
             variable_idx = next((i for i, var in enumerate(estado_data["variables"]) if var["idStr"] == variable_id_str), None)
             
             if station_idx is not None and variable_idx is not None:
-                return estado_data["observaciones"][variable_idx]["datos"][station_idx][-1]
+                value = estado_data["observaciones"][variable_idx]["datos"][station_idx][-1]
+                return float(value) if value is not None else None
             return None
-        except (KeyError, IndexError, TypeError):
+        except (KeyError, IndexError, TypeError, ValueError):
             return None
 
     @property
     def condition(self) -> str | None:
         """Return the current condition."""
-        # La API de estado actual no provee un icono del tiempo, así que lo dejamos vacío.
+        # La API de estado actual no provee un icono del tiempo, así que lo obtenemos del pronóstico de hoy.
+        forecast_data = self.coordinator.data.get("forecast", {})
+        if not forecast_data:
+            return None
+        
+        station_data = next((est for est in self.coordinator.data["estado"]["estaciones"] if est["id"] == self.station_id), None)
+        department_code = station_data.get("estado") if station_data else None
+        zone_id = DEPARTMENT_TO_ZONE_ID_MAP.get(department_code)
+
+        if not zone_id:
+            return None
+            
+        for item in forecast_data.get("items", []):
+            if item.get("zonaId") == zone_id and item.get("diaMasN") == 0:
+                return CONDITION_MAP.get(str(item.get("estadoTiempo")))
         return None
 
     @property
@@ -114,19 +154,25 @@ class InumetWeather(CoordinatorEntity[InumetDataUpdateCoordinator], WeatherEntit
         if not forecast_data or not forecast_data.get("items"):
             return None
         
-        # Lógica para encontrar la zona del pronóstico
-        # Podríamos hacer esto más inteligente en el futuro, por ahora es una aproximación
-        station_data = next((est for est in self.coordinator.data["estado"]["estaciones"] if est["id"] == self.station_id), None)
-        zone_id = station_data.get("estado") if station_data else None
+        station_data = next((est for est in self.coordinator.data.get("estado", {}).get("estaciones", []) if est["id"] == self.station_id), None)
+        if not station_data:
+            return None
+        
+        department_code = station_data.get("estado")
+        zone_id = DEPARTMENT_TO_ZONE_ID_MAP.get(department_code)
 
         if not zone_id:
             return None
-
+            
         forecasts = []
-        start_date = dt_util.parse_date(forecast_data.get("inicioPronostico"))
+        start_date_str = forecast_data.get("inicioPronostico")
+        if not start_date_str:
+            return None
         
+        start_date = dt_util.parse_date(start_date_str)
+
         for item in forecast_data.get("items", []):
-            if item.get("zonaCorta") == zone_id:
+            if item.get("zonaId") == zone_id:
                 day_offset = item.get("diaMasN", 0)
                 forecast_date = start_date + timedelta(days=day_offset)
                 
