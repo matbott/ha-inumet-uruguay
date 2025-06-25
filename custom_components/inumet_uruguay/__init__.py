@@ -8,8 +8,13 @@ from homeassistant.const import Platform
 from .const import DOMAIN
 from .coordinator import InumetDataUpdateCoordinator
 
-# Nos aseguramos de que cargue ambas plataformas
-PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.SENSOR]
+# --- LÍNEA MODIFICADA ---
+PLATFORMS: list[Platform] = [
+    Platform.BINARY_SENSOR,
+    Platform.SENSOR,
+    Platform.WEATHER,
+]
+# ----------------------
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Inumet Uruguay from a config entry."""
