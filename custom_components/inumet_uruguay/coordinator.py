@@ -12,9 +12,8 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from .const import (
     DOMAIN,
     ALERTS_URL,
-    JOBS_URL,
-    JOB_RESULTS_URL_TEMPLATE,
     FORECAST_URL,
+    ESTADO_ACTUAL_URL,
     UPDATE_INTERVAL,
     NAME,
 )
@@ -27,7 +26,7 @@ class InumetDataUpdateCoordinator(DataUpdateCoordinator):
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         """Initialize."""
         self.station_id = entry.data["station_id"]
-        self.station_name = entry.data["station_name"]
+        self.station_name = entry.title # Usamos el título que ya tiene el nombre
         self.session = async_get_clientsession(hass)
         super().__init__(
             hass,
@@ -36,57 +35,24 @@ class InumetDataUpdateCoordinator(DataUpdateCoordinator):
             update_interval=UPDATE_INTERVAL,
         )
 
-    async def _async_get_weather_data(self) -> dict:
-        """Fetch the latest weather data via the jobs endpoint."""
-        # Lógica para buscar en los jobs... (esta función no cambia)
-        response = await self.session.get(JOBS_URL)
-        response.raise_for_status()
-        jobs_data = await response.json()
-        for job in jobs_data.get("jobs", []):
-            if job.get("ProcessID") == "bufr2geojson" and job.get("Status") == "successful":
-                job_id = job.get("JobID")
-                results_url = JOB_RESULTS_URL_TEMPLATE.format(job_id=job_id)
-                _LOGGER.debug("Revisando job %s para la estación %s", job_id, self.station_id)
-                res_response = await self.session.get(results_url)
-                if res_response.status != 200:
-                    continue
-                results_data = await res_response.json()
-                station_weather = {}
-                for item in results_data.get("items", []):
-                    properties = item.get("properties", {})
-                    if properties.get("wigos_station_identifier") == self.station_id:
-                        measurement_name = properties.get("name")
-                        station_weather[measurement_name] = properties
-                if station_weather:
-                    _LOGGER.info("Datos encontrados para la estación %s en el job %s", self.station_id, job_id)
-                    return station_weather
-        _LOGGER.warning("No se encontraron datos recientes para la estación %s", self.station_id)
-        return {}
-
-    async def _async_get_alerts_data(self) -> dict:
-        """Fetch alerts data."""
-        response = await self.session.get(ALERTS_URL)
-        response.raise_for_status()
-        return await response.json()
-
-    async def _async_get_forecast_data(self) -> dict:
-        """Fetch forecast data."""
-        # Generamos el parámetro "cache buster" con la fecha y hora actual
-        cache_buster = datetime.now().strftime("%Y-%m-%d-%H-%M")
-        url = f"{FORECAST_URL}?{cache_buster}"
+    async def _fetch_data(self, url: str) -> dict:
+        """Generic data fetcher."""
+        if "pronosticoV4.json" in url:
+            cache_buster = datetime.now().strftime("%Y-%m-%d-%H-%M")
+            url = f"{url}?{cache_buster}"
+        
         response = await self.session.get(url)
         response.raise_for_status()
         return await response.json()
 
     async def _async_update_data(self) -> dict:
-        """Fetch all data from API endpoint."""
+        """Fetch all data from API endpoints."""
         try:
-            # Hacemos las TRES llamadas a la API en paralelo
             results = await asyncio.gather(
-                self._async_get_weather_data(),
-                self._async_get_alerts_data(),
-                self._async_get_forecast_data(),
+                self._fetch_data(ESTADO_ACTUAL_URL),
+                self._fetch_data(ALERTS_URL),
+                self._fetch_data(FORECAST_URL),
             )
-            return {"weather": results[0], "alerts": results[1], "forecast": results[2]}
+            return {"estado": results[0], "alerts": results[1], "forecast": results[2]}
         except Exception as exception:
             raise UpdateFailed(f"Error communicating with API: {exception}") from exception
