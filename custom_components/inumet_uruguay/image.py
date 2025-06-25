@@ -18,7 +18,8 @@ async def async_setup_entry(
 ) -> None:
     """Set up the image platform."""
     coordinator: InumetDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities([InumetMapImage(coordinator, entry)])
+    # Pasamos 'hass' al inicializador de la entidad
+    async_add_entities([InumetMapImage(hass, coordinator, entry)])
 
 
 class InumetMapImage(CoordinatorEntity[InumetDataUpdateCoordinator], ImageEntity):
@@ -28,9 +29,16 @@ class InumetMapImage(CoordinatorEntity[InumetDataUpdateCoordinator], ImageEntity
     _attr_has_entity_name = True
     _attr_name = "Mapa de Alertas"
 
-    def __init__(self, coordinator: InumetDataUpdateCoordinator, entry: ConfigEntry) -> None:
+    def __init__(
+        self, hass: HomeAssistant, coordinator: InumetDataUpdateCoordinator, entry: ConfigEntry
+    ) -> None:
         """Initialize the image entity."""
-        super().__init__(coordinator)
+        # --- LÓGICA DE INICIALIZACIÓN CORREGIDA ---
+        # Inicializamos ambas clases padre, pasando 'hass' a ImageEntity
+        CoordinatorEntity.__init__(self, coordinator)
+        ImageEntity.__init__(self, hass)
+        # ----------------------------------------
+        
         self.station_name = entry.data["station_name"]
         self._attr_unique_id = f"{entry.entry_id}_alert_map"
         self._attr_device_info = DeviceInfo(
@@ -44,14 +52,19 @@ class InumetMapImage(CoordinatorEntity[InumetDataUpdateCoordinator], ImageEntity
     @property
     def image_url(self) -> str | None:
         """Return the URL of the image."""
+        # Nuestra lógica para obtener la URL
         adv_gral_data = self.coordinator.data.get("adv_gral", {})
         return adv_gral_data.get("mapaMerge")
 
     @property
     def image_last_updated(self) -> datetime | None:
         """Return the last time the image was updated."""
+        # Nuestra lógica para obtener la fecha de actualización real
         adv_gral_data = self.coordinator.data.get("adv_gral", {})
         if date_str := adv_gral_data.get("fechaActualizacion"):
-            # Aseguramos que la fecha tenga información de zona horaria
-            return dt_util.parse_datetime(date_str).astimezone(dt_util.UTC)
+            try:
+                parsed_time = dt_util.parse_datetime(date_str)
+                return parsed_time
+            except (ValueError, TypeError):
+                return None
         return None
