@@ -2,7 +2,7 @@
 from __future__ import annotations
 import logging
 import asyncio
-from datetime import datetime, timedelta  # <-- LA LÍNEA QUE FALTABA
+from datetime import datetime, timedelta
 
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
@@ -14,6 +14,7 @@ from .const import (
     ALERTS_URL,
     FORECAST_URL,
     ESTADO_ACTUAL_URL,
+    GENERAL_ALERTS_URL, # <-- IMPORTACIÓN NUEVA
     NAME,
 )
 
@@ -41,8 +42,9 @@ class InumetDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _fetch_data(self, url: str) -> dict:
         """Generic data fetcher."""
-        if "pronosticoV4.json" in url:
-            cache_buster = datetime.now().strftime("%Y-%m-%d-%H-%M")
+        # Añadimos el cache buster para todas las URLs de la web pública por seguridad
+        if "inumet.gub.uy/reportes" in url:
+            cache_buster = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
             url = f"{url}?{cache_buster}"
         
         response = await self.session.get(url)
@@ -52,11 +54,18 @@ class InumetDataUpdateCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self) -> dict:
         """Fetch all data from API endpoints."""
         try:
+            # --- LÓGICA MODIFICADA: Ahora son 4 llamadas ---
             results = await asyncio.gather(
                 self._fetch_data(ESTADO_ACTUAL_URL),
                 self._fetch_data(ALERTS_URL),
                 self._fetch_data(FORECAST_URL),
+                self._fetch_data(GENERAL_ALERTS_URL),
             )
-            return {"estado": results[0], "alerts": results[1], "forecast": results[2]}
+            return {
+                "estado": results[0],
+                "alerts": results[1],
+                "forecast": results[2],
+                "adv_gral": results[3],
+            }
         except Exception as exception:
             raise UpdateFailed(f"Error communicating with API: {exception}") from exception
