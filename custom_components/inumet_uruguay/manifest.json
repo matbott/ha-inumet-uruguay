@@ -2,7 +2,7 @@
   "domain": "inumet_uruguay",
   "name": "Inumet Uruguay",
   "config_flow": true,
-  "documentation": "",
+  "documentation": "https://github.com/matbott/ha-inumet-uruguay/blob/e2db99d2666ee325dfd649b09a0150ef4fc1e381/README.md",
   "issue_tracker": "https://github.com/matbott/inumet-ha/issues",
   "authors": ["matbott"],
   "codeowners": ["@matbott"],
