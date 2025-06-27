@@ -1,6 +1,6 @@
 # Integración Inumet Uruguay para Home Assistant
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/hacs/integration)
+[![Open in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=matbott&repository=ha-inumet-uruguay&category=integration)
 
 Esta es una integración personalizada para Home Assistant que obtiene datos meteorológicos directamente de las fuentes de datos públicas del **Instituto Uruguayo de Meteorología (Inumet)**.
 
