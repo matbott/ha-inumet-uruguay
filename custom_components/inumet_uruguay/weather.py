@@ -81,6 +81,11 @@ class InumetWeather(CoordinatorEntity[InumetDataUpdateCoordinator], WeatherEntit
         self._attr_unique_id = f"{entry.entry_id}_weather"
         self._attr_name = self.station_name
         self._attr_supported_features = WeatherEntityFeature.FORECAST_DAILY
+        
+        # --- ¡AQUÍ ESTÁ EL CAMBIO! ---
+        # Este atributo añade el texto de atribución en la interfaz.
+        self._attr_attribution = "Datos proporcionados por Inumet"
+        
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
             name=f"{NAME} - {self.station_name}",
@@ -106,7 +111,6 @@ class InumetWeather(CoordinatorEntity[InumetDataUpdateCoordinator], WeatherEntit
     @property
     def condition(self) -> str | None:
         """Return the current condition."""
-        # La API de estado actual no provee un icono del tiempo, así que lo obtenemos del pronóstico de hoy.
         forecast_data = self.coordinator.data.get("forecast", {})
         if not forecast_data:
             return None

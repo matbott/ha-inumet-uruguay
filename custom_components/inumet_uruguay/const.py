@@ -3,7 +3,7 @@ from datetime import timedelta
 
 DOMAIN = "inumet_uruguay"
 NAME = "Inumet Uruguay"
-VERSION = "3.0.7"
+VERSION = "3.1.0"
 
 # URLs de la API
 ESTADO_ACTUAL_URL = "https://www.inumet.gub.uy/reportes/estadoActual/datos_inumet_ui_publica.mch"
@@ -13,3 +13,8 @@ GENERAL_ALERTS_URL = "https://inumet.gub.uy/reportes/riesgo/advGral.mch" # <-- U
 
 # Intervalo de actualización
 DEFAULT_UPDATE_INTERVAL = 30
+
+# Constantes para la configuración
+CONF_STATION_ID = "station_id"
+CONF_STATION_NAME = "station_name"
+CONF_UPDATE_INTERVAL = "update_interval"

@@ -1,0 +1,34 @@
+{
+    "title": "Inumet Uruguay ⛅",
+    "config": {
+      "step": {
+        "user": {
+          "title": "Configurar Inumet 🇺🇾",
+          "description": "Selecciona una estación meteorológica para monitorear.",
+          "data": {
+            "station_id": "Estación Meteorológica",
+            "update_interval": "Intervalo de actualización (minutos)"
+          }
+        }
+      },
+      "error": {
+        "cannot_connect": "No se pudo conectar con los servidores de Inumet.",
+        "unknown": "Ocurrió un error inesperado."
+      },
+      "abort": {
+        "max_instances_reached": "Ya has configurado el número máximo de instancias (3)."
+      }
+    },
+    "options": {
+      "step": {
+        "init": {
+          "title": "Opciones de Inumet",
+          "description": "Ajusta la frecuencia con la que se actualizan los datos.",
+          "data": {
+            "update_interval": "Intervalo de actualización (minutos)"
+          }
+        }
+      }
+    }
+  }
+  

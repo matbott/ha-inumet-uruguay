@@ -8,12 +8,22 @@ from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 
-from .const import DOMAIN, ESTADO_ACTUAL_URL, DEFAULT_UPDATE_INTERVAL
+# --- MODIFICACIÓN: Importar constantes para el formulario ---
+from .const import (
+    DOMAIN, 
+    ESTADO_ACTUAL_URL, 
+    DEFAULT_UPDATE_INTERVAL,
+    CONF_STATION_ID,
+    CONF_STATION_NAME,
+    CONF_UPDATE_INTERVAL
+)
 
 class InumetFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Inumet Uruguay."""
 
     VERSION = 1
+    # --- MODIFICACIÓN: Añadir el dominio de traducción ---
+    _attr_translation_domain = DOMAIN
     
     def __init__(self) -> None:
         """Initialize the config flow."""
@@ -21,20 +31,21 @@ class InumetFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Handle the user step."""
-        # --- LÓGICA AÑADIDA: Limitar a 3 instancias ---
         if len(self._async_current_entries()) >= 3:
             return self.async_abort(reason="max_instances_reached")
 
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            station_id = user_input["station_id"]
+            # --- MODIFICACIÓN: Usar constantes para leer los datos ---
+            station_id = user_input[CONF_STATION_ID]
             station_name = self.station_options.get(station_id, "Estación Desconocida")
             
+            # Usamos las constantes para guardar, esto es una buena práctica
             data_to_save = {
-                "station_id": station_id,
-                "station_name": station_name,
-                "update_interval": user_input["update_interval"],
+                CONF_STATION_ID: station_id,
+                CONF_STATION_NAME: station_name,
+                CONF_UPDATE_INTERVAL: user_input[CONF_UPDATE_INTERVAL],
             }
             
             return self.async_create_entry(title=station_name, data=data_to_save)
@@ -57,15 +68,16 @@ class InumetFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         except Exception:
             errors["base"] = "unknown"
 
-        if errors:
+        if not self.station_options:
+            # Si no hay estaciones, mostramos el error y no el formulario
             return self.async_show_form(step_id="user", errors=errors)
 
-        # --- LÓGICA MODIFICADA: Añadir campo de intervalo al formulario ---
+        # --- MODIFICACIÓN: Usar constantes en el Schema ---
         data_schema = vol.Schema(
             {
-                vol.Required("station_id"): vol.In(self.station_options),
+                vol.Required(CONF_STATION_ID): vol.In(self.station_options),
                 vol.Required(
-                    "update_interval", default=DEFAULT_UPDATE_INTERVAL
+                    CONF_UPDATE_INTERVAL, default=DEFAULT_UPDATE_INTERVAL
                 ): vol.All(vol.Coerce(int), vol.Range(min=30, max=240)),
             }
         )
@@ -91,17 +103,16 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Manage the options."""
         if user_input is not None:
-            # Actualiza las opciones en la entrada de configuración
             return self.async_create_entry(title="", data=user_input)
 
-        # Muestra el formulario de opciones
+        # --- MODIFICACIÓN: Usar constantes en el Schema de opciones ---
         schema = vol.Schema(
             {
                 vol.Required(
-                    "update_interval",
+                    CONF_UPDATE_INTERVAL,
                     default=self.config_entry.options.get(
-                        "update_interval",
-                        self.config_entry.data.get("update_interval", DEFAULT_UPDATE_INTERVAL),
+                        CONF_UPDATE_INTERVAL,
+                        self.config_entry.data.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL),
                     ),
                 ): vol.All(vol.Coerce(int), vol.Range(min=30, max=240)),
             }

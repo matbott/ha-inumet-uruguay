@@ -1,0 +1,34 @@
+{
+    "title": "Inumet Uruguay ⛅",
+    "config": {
+      "step": {
+        "user": {
+          "title": "Configure Inumet 🇺🇾",
+          "description": "Select a weather station to monitor.",
+          "data": {
+            "station_id": "Weather Station",
+            "update_interval": "Update interval (minutes)"
+          }
+        }
+      },
+      "error": {
+        "cannot_connect": "Could not connect to Inumet servers.",
+        "unknown": "An unexpected error occurred."
+      },
+      "abort": {
+        "max_instances_reached": "You have already configured the maximum number of instances (3)."
+      }
+    },
+    "options": {
+      "step": {
+        "init": {
+          "title": "Inumet Options",
+          "description": "Adjust how often the data is updated.",
+          "data": {
+            "update_interval": "Update interval (minutes)"
+          }
+        }
+      }
+    }
+  }
+  
