@@ -73,3 +73,7 @@ Desarrollado por **@matbott**.
 ## Aviso
 
 Esta es una integración no oficial y no está afiliada ni respaldada por Inumet. Depende de APIs públicas que podrían cambiar sin previo aviso, lo que podría causar que la integración deje de funcionar.
+
+## Agradecimiento:
+
+Gracias a https://github.com/aronkahrs-us/inumet-weather-ha por la implementacion que dio lugar a este desarrollo.
