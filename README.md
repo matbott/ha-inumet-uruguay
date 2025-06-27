@@ -4,13 +4,15 @@
 
 Esta es una integración personalizada para Home Assistant que obtiene datos meteorológicos directamente de las fuentes de datos públicas del **Instituto Uruguayo de Meteorología (Inumet)**.
 
+![image](https://github.com/user-attachments/assets/d2056e9a-b3e6-4bd8-9e50-7676776087bc)
+
 Proporciona monitoreo de alertas meteorológicas, condiciones actuales de estaciones y el pronóstico extendido para todo el país, permitiendo una integración completa y detallada del tiempo de Uruguay en tu instancia de Home Assistant.
 
 ## Funcionalidades Principales
 
 * **Configuración desde la Interfaz:** Se instala y configura fácilmente a través del flujo de configuración de Home Assistant.
 * **Selección Dinámica de Estaciones:** Al configurar, la integración carga la lista completa de estaciones meteorológicas oficiales de Inumet y la presenta en un menú desplegable para una fácil selección.
-* **Múltiples Estaciones:** Permite configurar hasta 3 instancias diferentes para monitorear 3 estaciones meteorológicas de forma simultánea.
+* **Múltiples Estaciones:** Permite configurar **hasta 3 instancias diferentes** para monitorear 3 estaciones meteorológicas de forma simultánea.
 * **Intervalo de Actualización Personalizable:** Permite al usuario definir la frecuencia de actualización (entre 30 y 240 minutos) durante la configuración y modificarla posteriormente desde las opciones de la integración.
 * **Entidades Completas:** Crea un dispositivo por cada estación configurada, el cual agrupa:
     * Una entidad `weather` principal con el pronóstico de 7 días.
