@@ -13,7 +13,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, NAME, VERSION
+from .const import DOMAIN, NAME, VERSION, MANUFACTURER
 from .coordinator import InumetDataUpdateCoordinator
 
 # El 'key' ahora es el idStr de la API
@@ -46,7 +46,7 @@ class InumetWeatherSensor(CoordinatorEntity[InumetDataUpdateCoordinator], Sensor
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
             name=f"{NAME} - {entry.title}",
-            manufacturer="matbott",
+            manufacturer=MANUFACTURER,
             sw_version=VERSION,
             model="Estación Meteorológica",
         )

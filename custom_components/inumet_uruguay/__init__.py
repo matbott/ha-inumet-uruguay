@@ -13,6 +13,7 @@ PLATFORMS: list[Platform] = [
     Platform.SENSOR,
     Platform.WEATHER,
     Platform.IMAGE,
+    Platform.CAMERA,
 ]
 
 # ----------------------

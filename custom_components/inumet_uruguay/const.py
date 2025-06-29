@@ -3,7 +3,8 @@ from datetime import timedelta
 
 DOMAIN = "inumet_uruguay"
 NAME = "Inumet Uruguay"
-VERSION = "3.2.0"
+MANUFACTURER = "matbott & 🤖"
+VERSION = "3.3.0"
 
 # URLs de la API
 ESTADO_ACTUAL_URL = "https://www.inumet.gub.uy/reportes/estadoActual/datos_inumet_ui_publica.mch"

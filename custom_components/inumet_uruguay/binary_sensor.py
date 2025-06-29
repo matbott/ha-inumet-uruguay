@@ -11,7 +11,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, NAME, VERSION
+from .const import DOMAIN, NAME, VERSION, MANUFACTURER
 # --- 1. LÍNEA MODIFICADA ---
 from .coordinator import InumetDataUpdateCoordinator
 
@@ -42,7 +42,7 @@ class InumetAlertsBinarySensor(CoordinatorEntity[InumetDataUpdateCoordinator], B
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
             name=f"{NAME} - {entry.data['station_name']}",
-            manufacturer="matbott",
+            manufacturer=MANUFACTURER,
             sw_version=VERSION,
             model="Estación Meteorológica",
             entry_type="service",

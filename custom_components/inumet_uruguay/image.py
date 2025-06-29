@@ -13,7 +13,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN, NAME, VERSION
+from .const import DOMAIN, NAME, VERSION, MANUFACTURER
 from .coordinator import InumetDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -103,7 +103,7 @@ class InumetImage(CoordinatorEntity[InumetDataUpdateCoordinator], ImageEntity):
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
             name=f"{NAME} ({entry.title})",
-            manufacturer="matbott & Asistente de Programación",
+            manufacturer=MANUFACTURER,
             sw_version=VERSION,
             model="Estación Meteorológica",
         )
