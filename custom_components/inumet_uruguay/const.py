@@ -11,6 +11,7 @@ ESTADO_ACTUAL_URL = "https://www.inumet.gub.uy/reportes/estadoActual/datos_inume
 ALERTS_URL = "https://w2b.inumet.gub.uy/oapi/collections/urn:wmo:md:uy-inumet:cap-alerts/items?f=json"
 FORECAST_URL = "https://www.inumet.gub.uy/reportes/pronosticos/pronosticoV4.json"
 GENERAL_ALERTS_URL = "https://inumet.gub.uy/reportes/riesgo/advGral.mch" # <-- URL NUEVA
+ALERTS_CHECK_URL = "https://www.inumet.gub.uy/admin/check-avisos"
 
 # Intervalo de actualización
 DEFAULT_UPDATE_INTERVAL = 30
