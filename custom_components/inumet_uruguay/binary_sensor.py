@@ -47,8 +47,6 @@ class InumetAlertsBinarySensor(CoordinatorEntity[InumetDataUpdateCoordinator], B
     @property
     def is_on(self) -> bool:
         """Return true if there are active alerts."""
-        # --- LÍNEA MODIFICADA ---
-        # Ahora el estado depende del check directo, que es más fiable.
         return self.coordinator.data.get("has_alerts", False)
 
     @property
@@ -57,8 +55,6 @@ class InumetAlertsBinarySensor(CoordinatorEntity[InumetDataUpdateCoordinator], B
         if not self.is_on:
             return None
 
-        # La lógica para obtener los atributos no cambia.
-        # Si no se pudieron obtener los detalles, 'alerts_data' será None y no se añadirán atributos.
         alerts_list = []
         alerts_data = self.coordinator.data.get("alerts")
         if alerts_data:
@@ -80,5 +76,6 @@ class InumetAlertsBinarySensor(CoordinatorEntity[InumetDataUpdateCoordinator], B
         return {
             "cantidad_alertas": len(alerts_list),
             "alertas": alerts_list,
-            "ultima_actualizacion": self.coordinator.last_update_success_time,
+            # --- LÍNEA CORREGIDA ---
+            "ultima_actualizacion": self.coordinator.data.get("updated_at"),
         }
