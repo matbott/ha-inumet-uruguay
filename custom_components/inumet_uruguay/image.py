@@ -18,7 +18,20 @@ from .coordinator import InumetDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
-# --- Lógica para generar las URLs y Fechas de Actualización ---
+def _get_alert_map_url(data: dict | None) -> str | None:
+    """Safely generate the alert map URL with a cache buster."""
+    if not data or not (base_url := data.get("adv_gral", {}).get("mapaMerge")):
+        return None
+
+    if last_updated := data.get("last_updated_timestamp"):
+        timestamp = int(last_updated.timestamp())
+        
+        if "?" in base_url:
+            return f"{base_url}&v={timestamp}"
+        else:
+            return f"{base_url}?v={timestamp}"
+
+    return base_url
 
 def _get_fwi_url_data() -> tuple[str, datetime]:
     """Generate URL and updated time for the FWI map."""
@@ -45,40 +58,35 @@ def _get_uv_url_data(data: dict | None) -> tuple[str | None, datetime | None]:
         return url, None
 
 
-# --- INICIO DEL CAMBIO 1: Modificar la definición para que acepte el coordinador ---
 @dataclass(frozen=True, kw_only=True)
 class InumetImageEntityDescription(ImageEntityDescription):
-    """Describes a Inumet image entity, extending the official ImageEntityDescription."""
+    """Describes a Inumet image entity."""
     key: str
     name: str
     icon: str
-    # La función de URL ahora puede recibir tanto los datos como el propio coordinador
-    url_fn: Callable[[dict | None, InumetDataUpdateCoordinator | None], str | None] | None = None
+    url_fn: Callable[[dict | None], str | None] | None = None
     last_updated_fn: Callable[[dict | None], datetime | None] | None = None
 
 
 IMAGE_DESCRIPTIONS: tuple[InumetImageEntityDescription, ...] = (
-    # --- INICIO DEL CAMBIO 2: Aplicar la lógica del "cache buster" a la URL de alertas ---
     InumetImageEntityDescription(
         key="alert_map", name="Mapa de Alertas", icon="mdi:alert-outline",
-        url_fn=lambda data, coord: (
-            f"{data.get('adv_gral', {}).get('mapaMerge')}?v={int(coord.last_update_success_time.timestamp())}"
-            if data and coord and coord.last_update_success_time and data.get("adv_gral", {}).get("mapaMerge")
-            else data.get("adv_gral", {}).get("mapaMerge") if data else None
-        ),
+        url_fn=_get_alert_map_url,
         last_updated_fn=lambda data: dt_util.parse_datetime(data.get("adv_gral", {}).get("fechaActualizacion")) if data and data.get("adv_gral", {}).get("fechaActualizacion") else None,
     ),
-    # --- FIN DEL CAMBIO 2 ---
     InumetImageEntityDescription(
         key="fwi_map", name="Mapa de Peligro de Incendio (FWI)", icon="mdi:fire",
-        url_fn=lambda data, coord: _get_fwi_url_data()[0],
+        url_fn=lambda data: _get_fwi_url_data()[0],
         last_updated_fn=lambda data: _get_fwi_url_data()[1],
     ),
+    # --- INICIO DE LA CORRECCIÓN ---
     InumetImageEntityDescription(
         key="uv_map", name="Mapa de Índice UV", icon="mdi:sun-wireless-outline",
-        url_fn=lambda data, coord: _get_uv_url_data(data)[0],
+        # Le volvemos a añadir el [0] para que tome solo la URL del resultado
+        url_fn=lambda data: _get_uv_url_data(data)[0],
         last_updated_fn=lambda data: _get_uv_url_data(data)[1],
     ),
+    # --- FIN DE LA CORRECCIÓN ---
 )
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
@@ -90,7 +98,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
 
 class InumetImage(CoordinatorEntity[InumetDataUpdateCoordinator], ImageEntity):
     """Inumet Image Entity."""
-
     entity_description: InumetImageEntityDescription
     _attr_has_entity_name = True
 
@@ -119,10 +126,8 @@ class InumetImage(CoordinatorEntity[InumetDataUpdateCoordinator], ImageEntity):
     @property
     def image_url(self) -> str | None:
         """Return the URL of the image."""
-        if self.coordinator.data and self.entity_description.url_fn:
-            # --- INICIO DEL CAMBIO 3: Pasar el coordinador a la función de URL ---
-            return self.entity_description.url_fn(self.coordinator.data, self.coordinator)
-            # --- FIN DEL CAMBIO 3 ---
+        if self.entity_description.url_fn:
+            return self.entity_description.url_fn(self.coordinator.data)
         return None
 
     @property
