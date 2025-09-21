@@ -107,11 +107,15 @@ class InumetDataUpdateCoordinator(DataUpdateCoordinator):
             raise UpdateFailed("No se pudieron obtener los datos esenciales de Inumet.")
         
         # 5. Devolvemos el paquete de datos completo
+        # --- INICIO DEL CAMBIO ---
+        # Añadimos una marca de tiempo al paquete de datos que devolvemos.
         return {
             "estado": estado_data,
             "forecast": forecast_data,
             "alerts": alerts_data,
             "adv_gral": adv_gral_data,
             "latest_uv_url": latest_uv_url,
-            "has_alerts": has_alerts, # La nueva clave importante
+            "has_alerts": has_alerts, 
+            "last_updated_timestamp": dt_util.utcnow(), # <-- ESTA ES LA LÍNEA NUEVA
         }
+        # --- FIN DEL CAMBIO ---
