@@ -1,6 +1,6 @@
 {
   "name": "Inumet Alertas",
   "country": "UY",
-  "homeassistant": "2023.1.0",
-  "render_readme": true
+  "render_readme": true,
+  "homeassistant": "2023.1.0"
 }
